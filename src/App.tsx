@@ -1,9 +1,12 @@
 import { Routes, Route } from "react-router-dom";
 import LoginPage from "./pages/LoginPage";
 import Dashboard from "./pages/DashboardPage";
-import ParameterPage from "./pages/ParameterPage";
 import PrivateRoute from "./components/PrivateRoute";
 import React from "react";
+
+import ParameterPage from "./pages/ParameterPage";
+import AddParameterPage from "./pages/AddParameterPage";
+import EditParameterPage from "./pages/EditParameterPage";
 
 const App: React.FC = () => {
   return (
@@ -18,6 +21,8 @@ const App: React.FC = () => {
         }
       />
       <Route path="/parameter" element={<ParameterPage />} />
+      <Route path="/parameters/add" element={<AddParameterPage />} />
+      <Route path="/parameters/edit/:code" element={<EditParameterPage />} />
     </Routes>
   );
 };

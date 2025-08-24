@@ -1,9 +1,27 @@
-import React, { useEffect, useState, FormEvent, ChangeEvent } from 'react';
-import BaseLayout from '../components/BaseLayout';
-import api from '../services/api';
+import React, { useEffect, useState, FormEvent, ChangeEvent } from "react";
+import {
+  Box,
+  Button,
+  CircularProgress,
+  IconButton,
+  Pagination,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TextField,
+  Toolbar,
+  Typography,
+} from "@mui/material";
+import { Add, Edit, Delete } from "@mui/icons-material";
+import { useNavigate } from "react-router-dom";
+import BaseLayout from "../components/BaseLayout";
+import api from "../services/api";
 
 interface ParamDetail {
-  // Define the shape of each detail if known
   [key: string]: any;
 }
 
@@ -13,19 +31,31 @@ interface Param {
   details?: ParamDetail[];
 }
 
-const Dashboard: React.FC = () => {
+interface ApiResponse {
+  data: Param[];
+  pageCount: number;
+  pageNo: number;
+  rowCount: number;
+  status: string;
+}
+
+const ParameterPage: React.FC = () => {
   const [params, setParams] = useState<Param[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
-  const [search, setSearch] = useState<string>('');
+  const [search, setSearch] = useState<string>("");
+  const [page, setPage] = useState<number>(1);
+  const [pageCount, setPageCount] = useState<number>(1);
+  const navigate = useNavigate();
 
-  const fetchParams = async (q: string = ''): Promise<void> => {
+  const fetchParams = async (q: string = "", pageNo: number = 1) => {
     setLoading(true);
     try {
-      const res = await api.get('/parameters', {
-        params: { search: q, per_page: 100 },
+      const res = await api.get<ApiResponse>("/parameters", {
+        params: { search: q, page: pageNo, per_page: 10 },
       });
-      const data: Param[] = res.data.data ?? res.data;
-      setParams(data);
+      const response = res.data;
+      setParams(response.data ?? []);
+      setPageCount(response.pageCount ?? 1);
     } catch (err) {
       console.error(err);
     } finally {
@@ -34,59 +64,146 @@ const Dashboard: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchParams();
-  }, []);
+    fetchParams(search, page);
+  }, [page]);
 
-  const onSearch = (e: FormEvent<HTMLFormElement>): void => {
+  const onSearch = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    fetchParams(search);
+    setPage(1);
+    fetchParams(search, 1);
   };
 
-  const handleInputChange = (e: ChangeEvent<HTMLInputElement>): void => {
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
+  };
+
+  const handleAdd = () => {
+    navigate("/parameters/add");
+  };
+
+  const handleUpdate = (param: Param) => {
+    navigate(`/parameters/edit/${param.param_code}`);
+  };
+
+  const handleDelete = (param: Param) => {
+    if (window.confirm(`Are you sure to delete ${param.param_name}?`)) {
+      alert("TODO: Call API delete for " + param.param_code);
+    }
   };
 
   return (
     <BaseLayout>
-      <h2>Dashboard</h2>
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+        {/* Header + Add Button */}
+        <Toolbar disableGutters sx={{ justifyContent: "space-between" }}>
+          <Typography variant="h5" fontWeight="bold">
+            Parameters
+          </Typography>
+          <Button
+            variant="contained"
+            startIcon={<Add />}
+            onClick={handleAdd}
+            sx={{ borderRadius: 2 }}
+          >
+            Add Parameter
+          </Button>
+        </Toolbar>
 
-      <form onSubmit={onSearch} style={{ marginBottom: 12 }}>
-        <input
-          placeholder="search param_code or name"
-          value={search}
-          onChange={handleInputChange}
-        />
-        <button type="submit">Search</button>
-      </form>
-
-      {loading ? (
-        <div>Loading...</div>
-      ) : (
-        <table
-          border={1}
-          cellPadding={8}
-          style={{ width: '100%', borderCollapse: 'collapse' }}
+        {/* Search */}
+        <Box
+          component="form"
+          onSubmit={onSearch}
+          sx={{ display: "flex", gap: 1 }}
         >
-          <thead>
-            <tr>
-              <th>Param Code</th>
-              <th>Param Name</th>
-              <th>Details count</th>
-            </tr>
-          </thead>
-          <tbody>
-            {params.map((p) => (
-              <tr key={p.param_code}>
-                <td>{p.param_code}</td>
-                <td>{p.param_name}</td>
-                <td>{p.details?.length ?? 0}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+          <TextField
+            placeholder="Search by code or name..."
+            value={search}
+            onChange={handleInputChange}
+            size="small"
+            sx={{ flex: 1 }}
+          />
+          <Button type="submit" variant="outlined">
+            Search
+          </Button>
+        </Box>
+
+        {/* Table */}
+        <Paper sx={{ width: "100%", overflow: "hidden" }}>
+          {loading ? (
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                p: 4,
+              }}
+            >
+              <CircularProgress />
+            </Box>
+          ) : (
+            <TableContainer>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Param Code</TableCell>
+                    <TableCell>Param Name</TableCell>
+                    <TableCell align="center">Details Count</TableCell>
+                    <TableCell align="center">Actions</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {params.length > 0 ? (
+                    params.map((p) => (
+                      <TableRow key={p.param_code} hover>
+                        <TableCell>{p.param_code}</TableCell>
+                        <TableCell>{p.param_name}</TableCell>
+                        <TableCell align="center">
+                          {p.details?.length ?? 0}
+                        </TableCell>
+                        <TableCell align="center">
+                          <IconButton
+                            color="primary"
+                            onClick={() => handleUpdate(p)}
+                          >
+                            <Edit />
+                          </IconButton>
+                          <IconButton
+                            color="error"
+                            onClick={() => handleDelete(p)}
+                          >
+                            <Delete />
+                          </IconButton>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={4} align="center">
+                        No data found
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
+        </Paper>
+
+        {/* Pagination */}
+        {pageCount > 1 && (
+          <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
+            <Pagination
+              count={pageCount}
+              page={page}
+              onChange={(_, value) => setPage(value)}
+              color="primary"
+              shape="rounded"
+            />
+          </Box>
+        )}
+      </Box>
     </BaseLayout>
   );
-}
+};
 
-export default Dashboard;
+export default ParameterPage;
