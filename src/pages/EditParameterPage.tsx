@@ -31,7 +31,7 @@ const EditParameterPage: React.FC = () => {
     try {
       await api.put(`/parameters/${code}`, data);
       alert("Parameter updated successfully");
-      navigate("/parameters");
+      navigate("/parameter");
     } catch (err) {
       console.error(err);
       alert("Failed to update parameter");

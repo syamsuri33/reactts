@@ -21,8 +21,8 @@ const App: React.FC = () => {
         }
       />
       <Route path="/parameter" element={<ParameterPage />} />
-      <Route path="/parameters/add" element={<AddParameterPage />} />
-      <Route path="/parameters/edit/:code" element={<EditParameterPage />} />
+      <Route path="/parameter/add" element={<AddParameterPage />} />
+      <Route path="/parameter/edit/:code" element={<EditParameterPage />} />
     </Routes>
   );
 };

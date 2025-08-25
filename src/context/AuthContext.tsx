@@ -51,12 +51,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
     };
 
-    if (token) {
+    if (token && !user) {
       fetchUser();
     } else {
       setLoading(false);
     }
-  }, [token]);
+  }, [token, user]);
 
   const login = async (email: string, password: string) => {
     try {

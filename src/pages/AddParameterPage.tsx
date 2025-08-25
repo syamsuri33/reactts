@@ -11,7 +11,7 @@ const AddParameterPage: React.FC = () => {
     try {
       await api.post("/parameters", data);
       alert("Parameter added successfully");
-      navigate("/parameters");
+      navigate("/parameter");
     } catch (err) {
       console.error(err);
       alert("Failed to add parameter");

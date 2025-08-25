@@ -65,12 +65,11 @@ const ParameterPage: React.FC = () => {
 
   useEffect(() => {
     fetchParams(search, page);
-  }, [page]);
+  }, [search, page]);
 
   const onSearch = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setPage(1);
-    fetchParams(search, 1);
   };
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -78,11 +77,11 @@ const ParameterPage: React.FC = () => {
   };
 
   const handleAdd = () => {
-    navigate("/parameters/add");
+    navigate("/parameter/add");
   };
 
   const handleUpdate = (param: Param) => {
-    navigate(`/parameters/edit/${param.param_code}`);
+    navigate(`/parameter/edit/${param.param_code}`);
   };
 
   const handleDelete = (param: Param) => {
